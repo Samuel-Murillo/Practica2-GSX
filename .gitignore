@@ -6,11 +6,13 @@
 # ============================================================================
 
 # ── Secrets y variables de entorno (CRÍTICO) ──────────────────────────────
+# Regla: ignorar TODOS los .env salvo el template de documentación
 .env
 .env.local
 .env.production
-.env.*
-!.env.example     # .env.example SÍ se sube (es el template sin valores reales)
+.env.development
+.env.staging
+# Nota: .env.example NO se ignora — es el template seguro para el repo
 *.pem
 *.key
 *.crt
