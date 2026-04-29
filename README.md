@@ -1,66 +1,136 @@
-# Práctica2-GSX
+# GreenDevCorp Infrastructure — Práctica 2 GSX
 
-📝 Descripción del Proyecto — Práctica 2: Infraestructura IT Organizacional
-Este repositorio contiene el desarrollo completo de la Práctica 2 de GSX, cuyo objetivo es diseñar e implementar la infraestructura moderna de una empresa en crecimiento (GreenDevCorp) utilizando herramientas y metodologías reales del mundo DevOps.
+[![CI](https://github.com/Samuel-Murillo/Practica2-GSX/actions/workflows/ci.yml/badge.svg)](https://github.com/Samuel-Murillo/Practica2-GSX/actions)
 
-Durante seis semanas se construye, paso a paso, un sistema completo que incluye contenedores, orquestación, automatización, redes y observabilidad, siguiendo buenas prácticas de ingeniería y versionado.
+## 📋 Descripción
 
-📦 Contenido de la práctica
-El proyecto se estructura en seis bloques principales:
+Infraestructura IT completa para **GreenDevCorp**, una empresa de desarrollo sostenible en crecimiento. Implementada siguiendo estándares de producción real: contenedores seguros, orquestación escalable, automatización declarativa, redes segmentadas y observabilidad completa.
 
-Semana 8 — Containerización (Docker)
+**Asignatura:** Gestión de Sistemas y Redes (GSX) — Práctica 2  
+**Período:** Semanas 8–13 | **Entrega:** 15 de mayo de 2026
 
-Creación de imágenes Docker para Nginx y una aplicación simple.
+---
 
-Publicación en Docker Hub y documentación de los Dockerfiles.
+## 🏗️ Arquitectura
 
-Semana 9 — Orquestación Multicontenedor (Docker Compose)
+```
+Internet
+   │
+   ▼
+[Nginx Proxy :80]  ← único punto de entrada
+   │
+   ├──► [Frontend :3000]   (Dashboard web)
+   │
+   └──► [Backend API :8000] (FastAPI REST)
+              │
+              ▼
+        [PostgreSQL :5432]  (aislado, sin acceso externo)
+              │
+        [Prometheus + Grafana]  (observabilidad, Semana 13)
+```
 
-Definición de un stack con varios servicios.
+**Segmentación de red (Docker Compose / Kubernetes):**
+- `dmz_net` — Proxy expuesto al exterior
+- `internal_net` — Frontend ↔ Backend
+- `db_net` — Backend ↔ PostgreSQL (aislada)
 
-Redes, volúmenes, variables de entorno y pruebas de comunicación.
+---
 
-Semana 10 — Kubernetes (Minikube)
+## 📦 Estructura del repositorio
 
-Despliegue de servicios mediante Deployments, Services y ConfigMaps.
+```
+Practica2-GSX/
+├── .github/workflows/     # CI/CD — GitHub Actions (Semana 11)
+├── week8-docker/          # Semana 8: Containerización
+│   ├── backend/           # FastAPI + Dockerfile multi-stage
+│   ├── frontend/          # Dashboard HTML/CSS/JS + Nginx
+│   └── nginx/             # Reverse Proxy
+├── week9-compose/         # Semana 9: Docker Compose
+│   ├── docker-compose.yml # Stack completo (4 servicios, 3 redes)
+│   └── .env.example       # Template de variables de entorno
+├── week10-kubernetes/     # Semana 10: Kubernetes (Minikube)
+├── week11-iac/            # Semana 11: Terraform + GitHub Actions
+├── week12-network/        # Semana 12: Network Design + NetworkPolicies
+├── week13-observability/  # Semana 13: Prometheus + Grafana
+└── docs/                  # Arquitectura, Runbook, Troubleshooting
+```
 
-Escalado, resiliencia y pruebas de conectividad dentro del cluster.
+---
 
-Semana 11 — Infraestructura como Código + CI/CD
+## 🚀 Inicio rápido
 
-Automatización con Terraform o Ansible.
+### Pre-requisitos
 
-Pipeline de CI en GitHub Actions para validar IaC y construir imágenes.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) ≥ 26.x
+- [Docker Compose](https://docs.docker.com/compose/) (incluido en Docker Desktop)
+- [Minikube](https://minikube.sigs.k8s.io/) (para Semana 10)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) (para Semana 10)
 
-Despliegue local (CD) sobre Minikube.
+### Levantar el stack completo (Semana 9)
 
-Semana 12 — Diseño de Red e Identidad
+```bash
+# 1. Crear fichero de entorno con credenciales
+cp week9-compose/.env.example week9-compose/.env
+# Editar .env y cambiar DB_USER y DB_PASSWORD
 
-Segmentación de redes, subredes y políticas de seguridad.
+# 2. Construir imágenes localmente
+docker build -t greendavcorp-backend:1.0.0  ./week8-docker/backend/
+docker build -t greendavcorp-frontend:1.0.0 ./week8-docker/frontend/
+docker build -t greendavcorp-proxy:1.0.0    ./week8-docker/nginx/
 
-NetworkPolicies en Kubernetes.
+# 3. Levantar todos los servicios
+docker compose -f week9-compose/docker-compose.yml --env-file week9-compose/.env up -d
 
-Investigación sobre DNS, DHCP, NTP y sistemas de identidad (LDAP, AD, SSO).
+# 4. Verificar que todos están healthy
+docker compose -f week9-compose/docker-compose.yml ps
 
-Semana 13 — Integración, Observabilidad y Documentación
+# 5. Acceder al dashboard
+# Abrir http://localhost en el navegador
+```
 
-Integración completa del sistema.
+### Verificar servicios individualmente
 
-Observabilidad con Prometheus y Grafana (opcional).
+```bash
+# Health del backend
+curl http://localhost/health
 
-Pruebas end-to-end, documentación, runbook y guía de troubleshooting.
+# Status de la API
+curl http://localhost/api/v1/status
 
-🎯 Objetivo final
-Construir una infraestructura funcional, reproducible y documentada que refleje prácticas reales de DevOps:
+# Métricas (formato Prometheus)
+curl http://localhost/metrics
+```
 
-Contenedores consistentes
+---
 
-Orquestación escalable
+## 🔒 Seguridad implementada
 
-Automatización declarativa
+| Área | Medida | Impacto |
+|---|---|---|
+| **Contenedores** | Non-root user (uid 1001) en todos | Mínimo privilegio |
+| **Imágenes** | Multi-stage build, alpine/slim | Superficie de ataque reducida |
+| **Secretos** | Variables de entorno, nunca hardcoded | Evita exposición de credenciales |
+| **Red** | 3 redes aisladas (DMZ/Internal/DB) | Segmentación de tráfico |
+| **HTTP** | Cabeceras OWASP (X-Frame, CSP, etc.) | Protección cliente |
+| **Nginx** | `server_tokens off`, rate limiting | Oscurecer versión, proteger DDoS |
+| **Git** | `.gitignore` completo + `.env.example` | No filtrar secretos |
+| **PostgreSQL** | Sin puerto expuesto al host | Acceso solo desde backend |
 
-Redes seguras
+---
 
-Observabilidad
+## 📅 Progreso semanal
 
-Documentación clara y profesional
+| Semana | Contenido | Estado |
+|---|---|---|
+| **8** | Docker — Containerización | ✅ Completo |
+| **9** | Docker Compose — Orquestación | ✅ Completo |
+| **10** | Kubernetes (Minikube) | 🔄 Pendiente |
+| **11** | IaC (Terraform) + CI/CD (GitHub Actions) | 🔄 Pendiente |
+| **12** | Network Design + Identity | 🔄 Pendiente |
+| **13** | Observabilidad + Documentación final | 🔄 Pendiente |
+
+---
+
+## 👥 Equipo
+
+Samuel Murillo — Práctica 2 GSX
