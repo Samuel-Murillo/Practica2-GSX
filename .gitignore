@@ -1,0 +1,89 @@
+# ============================================================================
+# .gitignore — GreenDevCorp Infrastructure Repository
+# Práctica 2 GSX
+#
+# REGLA DE ORO: Si contiene credenciales, claves o datos sensibles → NO en Git
+# ============================================================================
+
+# ── Secrets y variables de entorno (CRÍTICO) ──────────────────────────────
+.env
+.env.local
+.env.production
+.env.*
+!.env.example     # .env.example SÍ se sube (es el template sin valores reales)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*secret*
+*credential*
+kubeconfig
+~/.kube/config
+
+# ── Terraform ─────────────────────────────────────────────────────────────
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars        # Puede contener secretos
+override.tf
+override.tf.json
+
+# ── Docker ────────────────────────────────────────────────────────────────
+# No ignorar Dockerfiles ni docker-compose.yml (son código)
+.dockerignore           # No ignorar: es útil en repo
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── Node.js ───────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+dist/
+.next/
+out/
+
+# ── Kubernetes ────────────────────────────────────────────────────────────
+# Los manifiestos YAML SÍ se suben — los secrets NO
+# Se usa External Secrets Operator o Sealed Secrets en producción real
+
+# ── Logs y temporales ─────────────────────────────────────────────────────
+*.log
+logs/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# ── IDEs y editores ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.editorconfig
